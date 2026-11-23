@@ -11,7 +11,7 @@
 .ent-topo{display:flex;flex-direction:column;gap:14px}
 .ent-evento{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--muted)}
 .ent-evento select{padding:10px 12px;border:1px solid var(--linha);border-radius:10px;font:inherit;font-size:15px;color:var(--tinta);background:#fff}
-.ent-numeros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ent-numeros{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .ent-numeros div{background:var(--verde-claro);border-radius:12px;padding:10px;text-align:center}
 .ent-numeros b{display:block;font-size:24px;color:var(--verde)}
 .ent-numeros span{font-size:12px;color:var(--muted)}
@@ -45,3 +45,15 @@
 .ent-botoes .btn{padding:14px;font-size:16px;background:rgba(255,255,255,.18);color:#fff}
 .ent-botoes .btn.primary{background:#fff;color:var(--tinta)}
 @media print{.ent-overlay{display:none!important}}
+.ent-topo h3{margin:0}
+.ing-item{align-items:flex-start}
+.ing-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.ing-botoes{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+@media (max-width:760px){
+  .ent-numeros{gap:6px}
+  .ent-numeros div{padding:8px 4px}
+  .ent-numeros b{font-size:20px}
+  .ent-numeros span{font-size:11px}
+  .ing-botoes{width:100%;justify-content:stretch}
+  .ing-botoes .btn{flex:1;padding:10px}
+}

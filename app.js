@@ -342,11 +342,11 @@ function vPainel() {
       <div class="lista mini-lista" style="margin-top:10px">
         ${retHoje.length ? retHoje.slice(0, 8).map(itemRetorno).join('') : '<p class="muted">Nenhum retorno pendente para hoje.</p>'}
       </div>
-      <div class="sep"></div>
+      ${db.lead.length ? `<div class="sep"></div>
       <h3>Funil comercial</h3>
       <div class="linha-val" style="margin-top:8px;flex-wrap:wrap;gap:6px">
         ${ETAPAS.map((e) => `<span class="tag ${e.id === 'perdido' ? 'cancelada' : e.id === 'matriculado' ? 'pago' : ''}">${e.nome}: ${etapas[e.id] || 0}</span>`).join('')}
-      </div>
+      </div>` : ''}
     </div>
   </div>`;
 }

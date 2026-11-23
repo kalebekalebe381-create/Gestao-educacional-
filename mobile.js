@@ -7,11 +7,11 @@ const ICONES = {
   financeiro: '<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
   cobrancas: '<path d="M12 22a2.5 2.5 0 0 0 2.4-2h-4.8a2.5 2.5 0 0 0 2.4 2zm7-6V11a7 7 0 0 0-5.5-6.8V3a1.5 1.5 0 0 0-3 0v1.2A7 7 0 0 0 5 11v5l-2 2v1h18v-1z"/>',
   comercial: '<path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm-8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h7v-2.5c0-.9.4-1.7 1-2.4A9.7 9.7 0 0 0 8 13zm8 0c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/>',
+  ingressos: '<path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2.5a2.5 2.5 0 0 0 0 5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2.5a2.5 2.5 0 0 0 0-5zm11 0v2m0 3v2m0 3v1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
   mais: '<circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/>',
 };
-const PRINCIPAIS = [['painel', 'Painel'], ['financeiro', 'Financeiro'], ['cobrancas', 'Cobranças'], ['comercial', 'Comercial']];
+const PRINCIPAIS = [['painel', 'Painel'], ['financeiro', 'Financeiro'], ['cobrancas', 'Cobranças'], ['ingressos', 'Ingressos']];
 const MAIS = [
-  ['entrada', 'Entrada do evento', 'Ler o QR code dos ingressos na porta'],
   ['alunos', 'Alunos', 'Cadastro e situação de cada aluno'],
   ['cursos', 'Cursos e turmas', 'Planos, valores e turmas'],
   ['retornos', 'Retornos', 'Agenda de quem chamar de volta'],

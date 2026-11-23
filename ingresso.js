@@ -152,25 +152,68 @@ function pertence(m, sel) {
 }
 const participantes = (sel) => GE.db.matricula.filter((m) => m.status !== 'cancelada' && pertence(m, sel));
 
+function linksEnvio(m) {
+  const a = GE.porId('aluno', m.alunoId) || {};
+  const msg = mensagem(m);
+  const email = String(a.email || '').trim();
+  return {
+    whats: a.whatsapp ? GE.linkWhats(a.whatsapp, msg) : '',
+    email: email ? `mailto:${email}?subject=${encodeURIComponent('Seu ingresso: ' + nomeEvento(m))}&body=${encodeURIComponent(msg)}` : '',
+  };
+}
+
 function vEntrada() {
   const ops = opcoesEventos();
   if (st.evento === null || (st.evento && !ops.some((o) => o.v === st.evento))) st.evento = eventoPadrao(ops);
-  const lista = participantes(st.evento).map((m) => ({ m, a: GE.porId('aluno', m.alunoId) || {}, s: situacao(m) }))
-    .sort((x, y) => (x.a.nome || '').localeCompare(y.a.nome || ''));
+  const lista = participantes(st.evento).map((m) => {
+    if (!m.ingresso?.codigo) m.ingresso = { ...(m.ingresso || {}), codigo: gerarCodigo(m.id) };
+    return { m, a: GE.porId('aluno', m.alunoId) || {}, s: situacao(m) };
+  }).sort((x, y) => (x.a.nome || '').localeCompare(y.a.nome || ''));
   const entraram = lista.filter((x) => x.s.k === 'usado').length;
   const pendentes = lista.filter((x) => x.s.k === 'pendente').length;
+  const enviados = lista.filter((x) => x.m.ingresso?.enviadoEm).length;
   return `
-  <div class="sec-head"><div><h1>Entrada</h1><p class="muted">Confira os ingressos na porta do evento.</p></div></div>
+  <div class="sec-head"><div><h1>Ingressos</h1><p class="muted">Envie o ingresso de cada pessoa e confira na entrada do evento.</p></div></div>
   <div class="card ent-topo">
     <label class="ent-evento">Evento<select onchange="GI.evento(this.value)">
       ${ops.map((o) => `<option value="${o.v}" ${o.v === st.evento ? 'selected' : ''}>${h(o.nome)}</option>`).join('')}
       <option value="" ${st.evento === '' ? 'selected' : ''}>Todos os eventos</option>
     </select></label>
     <div class="ent-numeros">
-      <div><b>${entraram}</b><span>entraram</span></div>
       <div><b>${lista.length}</b><span>inscritos</span></div>
+      <div class="${enviados < lista.length ? 'alerta' : ''}"><b>${enviados}</b><span>enviados</span></div>
       <div class="${pendentes ? 'alerta' : ''}"><b>${pendentes}</b><span>falta pagar</span></div>
+      <div><b>${entraram}</b><span>entraram</span></div>
     </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="ent-lista-cab"><h3>Quem vai</h3><input type="search" placeholder="Buscar pelo nome" oninput="GI.filtrar(this.value)"></div>
+    <div class="lista mini-lista" id="entLista">
+      ${lista.map(({ m, a, s }) => {
+        const l = linksEnvio(m);
+        const env = m.ingresso?.enviadoEm;
+        return `
+      <div class="item ing-item" data-busca="${h(normaliza([a.nome, a.whatsapp, a.email, m.ingresso?.codigo].join(' ')))}">
+        <div class="info" onclick="GE.verMatricula('${m.id}')" style="cursor:pointer">
+          <div class="t">${h(a.nome || 'Aluno removido')}</div>
+          <div class="s">${h(m.ingresso?.codigo || '')}${st.evento ? '' : ' · ' + h(nomeEvento(m))}</div>
+          <div class="ing-tags">
+            ${env ? `<span class="tag pago">Enviado ${h(quando(env).split(' às ')[0])}</span>` : '<span class="tag">Não enviado</span>'}
+            ${s.k === 'pendente' ? `<span class="tag aberto">${h(s.t)}</span>` : ''}
+            ${s.k === 'usado' ? `<span class="tag cancelada">Entrou ${hora(m.ingresso.usadoEm)}</span>` : ''}
+          </div>
+        </div>
+        <div class="ing-botoes">
+          ${l.whats ? `<a class="btn small whats" target="_blank" rel="noopener" href="${h(l.whats)}" onclick="GI.enviado('${m.id}','whatsapp')">WhatsApp</a>` : '<span class="ajuda">Sem WhatsApp</span>'}
+          ${l.email ? `<a class="btn small" href="${h(l.email)}" onclick="GI.enviado('${m.id}','email')">E-mail</a>` : ''}
+          <a class="btn small ghost" target="_blank" rel="noopener" href="${h(linkIngresso(m.ingresso.codigo))}">Ver</a>
+        </div>
+      </div>`;
+      }).join('') || '<p class="muted vazio">Ninguém matriculado neste evento ainda. Faça a matrícula pelo botão + e ela aparece aqui.</p>'}
+    </div>
+  </div>
+  <div class="card ent-topo" style="margin-top:14px">
+    <h3>Na entrada do evento</h3>
     <button type="button" class="btn primary full ent-ler" onclick="GI.abrirLeitor()">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
       Ler QR code
@@ -179,16 +222,7 @@ function vEntrada() {
       <input name="cod" placeholder="ou digite o código" autocapitalize="characters" autocomplete="off" spellcheck="false">
       <button class="btn">Conferir</button>
     </form>
-  </div>
-  <div class="card" style="margin-top:14px">
-    <div class="ent-lista-cab"><h3>Inscritos</h3><input type="search" placeholder="Buscar pelo nome" oninput="GI.filtrar(this.value)"></div>
-    <div class="lista mini-lista" id="entLista">
-      ${lista.map(({ m, a, s }) => `
-      <div class="item" data-busca="${h(normaliza([a.nome, a.whatsapp, m.ingresso?.codigo].join(' ')))}">
-        <div class="info"><div class="t">${h(a.nome || 'Aluno removido')}</div><div class="s">${h(m.ingresso?.codigo || '')}${st.evento ? '' : ' · ' + h(nomeEvento(m))}</div></div>
-        ${s.k === 'usado' ? `<span class="tag cancelada">Entrou ${hora(m.ingresso.usadoEm)}</span>` : `${s.k === 'pendente' ? `<span class="tag aberto">${h(s.t)}</span>` : ''}<button type="button" class="btn small ${s.k === 'ok' ? 'primary' : ''}" onclick="GI.conferirMatricula('${m.id}')">Dar entrada</button>`}
-      </div>`).join('') || '<p class="muted vazio">Nenhum inscrito neste evento ainda.</p>'}
-    </div>
+    <p class="ajuda">Se a pessoa estiver sem o celular, procure o nome acima, abra a matrícula e confira o pagamento.</p>
   </div>`;
 }
 const normaliza = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -365,13 +399,20 @@ window.GI = {
     inp.blur();
     if (v.trim()) conferirCodigo(v);
   },
+  async enviado(id, canal) {
+    const m = GE.porId('matricula', id); if (!m) return;
+    m.ingresso = { ...(m.ingresso || {}), codigo: m.ingresso?.codigo || gerarCodigo(id), enviadoEm: new Date().toISOString(), enviadoPor: canal };
+    try { await GE.salvar(m); } catch { return; }
+    setTimeout(() => GE.render(), 300);
+  },
   conferirMatricula, abrirLeitor, fecharLeitor, proximo,
   abrirMatricula(id) { fecharOverlay(); GE.verMatricula(id); },
 };
 
+GE.rotas.ingressos = vEntrada;
 GE.rotas.entrada = vEntrada;
 document.addEventListener('ge:render', (e) => {
   garantirIngressos();
-  if (e.detail?.rota !== 'entrada' && leitor) fecharOverlay();
+  if (!['ingressos', 'entrada'].includes(e.detail?.rota) && leitor) fecharOverlay();
 });
 window.addEventListener('hashchange', () => { if (leitor) fecharOverlay(); });
