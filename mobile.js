@@ -54,7 +54,15 @@ function rotularTabelas(raiz) {
   raiz.querySelectorAll('table').forEach((t) => {
     if (t.dataset.rotulada) return;
     const nomes = [...t.querySelectorAll('thead th')].map((th) => th.textContent.trim());
-    t.querySelectorAll('tbody tr').forEach((tr) => [...tr.children].forEach((td, i) => { if (nomes[i] && !td.hasAttribute('colspan')) td.dataset.label = nomes[i]; }));
+    t.querySelectorAll('tbody tr').forEach((tr) => [...tr.children].forEach((td, i) => {
+      if (nomes[i] && !td.hasAttribute('colspan')) td.dataset.label = nomes[i];
+      // embrulha o conteúdo para ele quebrar linha no cartão em vez de vazar para fora da tela
+      if (td.hasAttribute('colspan') || (td.children.length === 1 && td.firstElementChild.classList.contains('v'))) return;
+      const v = document.createElement('span');
+      v.className = 'v';
+      while (td.firstChild) v.appendChild(td.firstChild);
+      td.appendChild(v);
+    }));
     t.dataset.rotulada = '1';
     t.classList.add('cartoes');
   });

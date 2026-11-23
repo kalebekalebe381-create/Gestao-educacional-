@@ -604,7 +604,7 @@ function editarLead(id) {
 // ================= ALUNOS =================
 function vAlunos() {
   const q = normaliza(estado.alunosBusca);
-  const alunos = [...db.aluno].filter((a) => !q || normaliza(a.nome + ' ' + a.whatsapp + ' ' + a.email + ' ' + a.cpf).includes(q)).sort((a, b) => a.nome.localeCompare(b.nome));
+  const alunos = [...db.aluno].filter((a) => !q || normaliza([a.nome, a.whatsapp, soDigitos(a.whatsapp), a.email].join(' ')).includes(q)).sort((a, b) => a.nome.localeCompare(b.nome));
   const linhas = alunos.map((a) => {
     const mats = db.matricula.filter((m) => m.alunoId === a.id && m.status !== 'cancelada');
     let tot = 0, pago = 0, atraso = 0;
@@ -622,7 +622,7 @@ function vAlunos() {
     <div><h1>Alunos</h1><p class="muted">${db.aluno.length} aluno(s) cadastrados.</p></div>
     <div class="acoes"><button class="btn" onclick="G.editarAluno()">+ Novo aluno</button><button class="btn primary" onclick="G.novaMatricula()">+ Nova matrícula</button></div>
   </div>
-  <div class="filtros"><input type="search" placeholder="Buscar por nome, WhatsApp, e-mail ou CPF" value="${h(estado.alunosBusca)}" oninput="G.buscaAlunos(this.value)" id="buscaAlunos"></div>
+  <div class="filtros"><input type="search" placeholder="Buscar por nome, WhatsApp ou e-mail" value="${h(estado.alunosBusca)}" oninput="G.buscaAlunos(this.value)" id="buscaAlunos"></div>
   <div class="tabela-wrap"><table><thead><tr><th>Nome</th><th>WhatsApp</th><th>Cursos</th><th class="num">Total</th><th class="num">Pago</th><th>Situação</th></tr></thead>
   <tbody>${linhas || '<tr><td colspan="6" class="vazio">Nenhum aluno encontrado.</td></tr>'}</tbody></table></div>`;
 }
@@ -632,12 +632,11 @@ function formAlunoCampos(a) {
     <label class="inteira">Nome completo<input name="nome" value="${h(a.nome)}" required></label>
     <label>WhatsApp<input name="whatsapp" value="${h(a.whatsapp)}" inputmode="tel" placeholder="(61) 99999-9999"></label>
     <label>E-mail<input name="email" type="email" value="${h(a.email)}"></label>
-    <label>CPF<input name="cpf" value="${h(a.cpf)}" inputmode="numeric"></label>
     <label>Cidade<input name="cidade" value="${h(a.cidade)}"></label>
     <label class="inteira">Instagram<input name="instagram" value="${h(a.instagram)}" placeholder="@"></label>`;
 }
 function editarAluno(id, aoSalvar) {
-  const a = id ? structuredClone(porId('aluno', id)) : { tipo: 'aluno', nome: '', whatsapp: '', email: '', cpf: '', cidade: '', instagram: '', obs: '', criadoEm: new Date().toISOString() };
+  const a = id ? structuredClone(porId('aluno', id)) : { tipo: 'aluno', nome: '', whatsapp: '', email: '', cidade: '', instagram: '', obs: '', criadoEm: new Date().toISOString() };
   abrirModal(id ? 'Editar aluno' : 'Novo aluno', `
     <form id="fAluno"><div class="form">${formAlunoCampos(a)}
       <label class="inteira">Observações<textarea name="obs">${h(a.obs)}</textarea></label></div>
@@ -653,7 +652,7 @@ function editarAluno(id, aoSalvar) {
     $('#fAluno', el).onsubmit = async (e) => {
       e.preventDefault();
       const f = dadosForm(e.target);
-      Object.assign(a, { nome: f.nome.trim(), whatsapp: f.whatsapp, email: f.email, cpf: f.cpf, cidade: f.cidade, instagram: f.instagram, obs: f.obs });
+      Object.assign(a, { nome: f.nome.trim(), whatsapp: f.whatsapp, email: f.email, cidade: f.cidade, instagram: f.instagram, obs: f.obs });
       await salvar(a); fecharModal(); render(); toast('Aluno salvo');
       if (aoSalvar) aoSalvar(a);
     };
@@ -665,7 +664,7 @@ function verAluno(id) {
   const link = linkWhats(a.whatsapp, `Olá, ${a.nome.split(' ')[0]}! Tudo bem? Aqui é do Instituto Inova.`);
   abrirModal(a.nome, `
     <div class="resumo">
-      ${a.whatsapp ? 'WhatsApp: <b>' + h(foneBR(a.whatsapp)) + '</b><br>' : ''}${a.email ? 'E-mail: ' + h(a.email) + '<br>' : ''}${a.cpf ? 'CPF: ' + h(a.cpf) + '<br>' : ''}${a.cidade ? 'Cidade: ' + h(a.cidade) + '<br>' : ''}${a.instagram ? 'Instagram: ' + h(a.instagram) + '<br>' : ''}${a.obs ? '<span class="muted">' + h(a.obs) + '</span>' : ''}
+      ${a.whatsapp ? 'WhatsApp: <b>' + h(foneBR(a.whatsapp)) + '</b><br>' : ''}${a.email ? 'E-mail: ' + h(a.email) + '<br>' : ''}${a.cidade ? 'Cidade: ' + h(a.cidade) + '<br>' : ''}${a.instagram ? 'Instagram: ' + h(a.instagram) + '<br>' : ''}${a.obs ? '<span class="muted">' + h(a.obs) + '</span>' : ''}
     </div>
     <div class="acoes" style="margin:14px 0">
       ${link ? `<a class="btn whats small" target="_blank" rel="noopener" href="${link}">WhatsApp</a>` : ''}
@@ -698,7 +697,7 @@ function novaMatricula(pre = {}) {
         <div class="inteira form" id="novoAluno" style="padding:12px;background:#f7faf9;border-radius:12px">
           <label class="inteira">Nome completo<input name="an" value="${h(pre.lead?.nome || '')}"></label>
           <label>WhatsApp<input name="aw" value="${h(pre.lead?.whatsapp || '')}" inputmode="tel" placeholder="(61) 99999-9999"></label>
-          <label>CPF<input name="ac" inputmode="numeric"></label>
+          <label>E-mail<input name="ae" type="email" inputmode="email" placeholder="para enviar a confirmação"></label>
         </div>
       </div>
       <div class="passo"><span>2</span> Curso</div>
@@ -780,7 +779,7 @@ function novaMatricula(pre = {}) {
       let alunoId = f.alunoId;
       if (alunoId === '__novo') {
         if (!f.an.trim()) return toast('Digite o nome do aluno.');
-        const a = await salvar({ tipo: 'aluno', nome: f.an.trim(), whatsapp: f.aw, cpf: f.ac, email: '', cidade: '', instagram: '', obs: '', criadoEm: new Date().toISOString() });
+        const a = await salvar({ tipo: 'aluno', nome: f.an.trim(), whatsapp: f.aw, email: (f.ae || '').trim(), cidade: '', instagram: '', obs: '', criadoEm: new Date().toISOString() });
         alunoId = a.id;
       }
       const c = porId('curso', f.cursoId);
@@ -1171,8 +1170,8 @@ window.G = {
   },
   csvTurma(id) {
     const t = porId('turma', id);
-    const linhas = [['Aluno', 'WhatsApp', 'E-mail', 'CPF', 'Plano', 'Valor', 'Pago', 'Falta', 'Situação']];
-    inscritosTurma(id).forEach((m) => { const a = porId('aluno', m.alunoId) || {}; const r = resumoMatricula(m); linhas.push([a.nome, foneBR(a.whatsapp), a.email, a.cpf, m.planoNome, valorCsv(r.total), valorCsv(r.pago), valorCsv(Math.max(0, r.saldo)), r.situacao]); });
+    const linhas = [['Aluno', 'WhatsApp', 'E-mail', 'Plano', 'Valor', 'Pago', 'Falta', 'Situação']];
+    inscritosTurma(id).forEach((m) => { const a = porId('aluno', m.alunoId) || {}; const r = resumoMatricula(m); linhas.push([a.nome, foneBR(a.whatsapp), a.email, m.planoNome, valorCsv(r.total), valorCsv(r.pago), valorCsv(Math.max(0, r.saldo)), r.situacao]); });
     baixar(`lista-${normaliza(t.nome).replace(/[^a-z0-9]+/g, '-')}.csv`, csv(linhas), 'text/csv;charset=utf-8');
   },
   csvFinanceiro(todas = false) {
