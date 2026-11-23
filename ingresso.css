@@ -1,0 +1,47 @@
+/* ===== Ingressos: bloco na matrícula e tela de entrada ===== */
+.ing-box{margin-top:12px;border:1.5px solid var(--linha);border-radius:14px;padding:12px 14px;background:#fff}
+.ing-box.ok{border-color:#bfe3d2}
+.ing-box.pendente{border-color:#f3d6a6}
+.ing-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.ing-rot{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.ing-cod{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:18px;letter-spacing:.08em;color:var(--verde)}
+.ing-box .ajuda{display:block;margin:4px 0}
+.ing-box .acoes{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+
+.ent-topo{display:flex;flex-direction:column;gap:14px}
+.ent-evento{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--muted)}
+.ent-evento select{padding:10px 12px;border:1px solid var(--linha);border-radius:10px;font:inherit;font-size:15px;color:var(--tinta);background:#fff}
+.ent-numeros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ent-numeros div{background:var(--verde-claro);border-radius:12px;padding:10px;text-align:center}
+.ent-numeros b{display:block;font-size:24px;color:var(--verde)}
+.ent-numeros span{font-size:12px;color:var(--muted)}
+.ent-numeros .alerta{background:var(--amarelo-claro)}
+.ent-numeros .alerta b{color:var(--amarelo)}
+.ent-ler{padding:16px;font-size:17px;border-radius:14px}
+.ent-ler svg{width:24px;height:24px}
+.ent-codigo{display:flex;gap:8px}
+.ent-codigo input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--linha);border-radius:10px;font:inherit;text-transform:uppercase;letter-spacing:.06em}
+.ent-codigo input::placeholder{text-transform:none;letter-spacing:0}
+.ent-lista-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.ent-lista-cab input{flex:1;max-width:260px;min-width:0;padding:8px 12px;border:1px solid var(--linha);border-radius:10px;font:inherit}
+
+.ent-overlay{position:fixed;inset:0;z-index:100;background:#000;display:flex;align-items:center;justify-content:center}
+.ent-overlay.sem-cam{background:rgba(0,0,0,.55)}
+.ent-cam{position:absolute;inset:0}
+.ent-cam video{width:100%;height:100%;object-fit:cover;display:block}
+.ent-mira{position:absolute;left:50%;top:50%;width:min(68vw,300px);aspect-ratio:1;transform:translate(-50%,-55%);border-radius:22px;box-shadow:0 0 0 9999px rgba(0,0,0,.45);border:3px solid rgba(255,255,255,.9)}
+.ent-dica{position:absolute;left:16px;right:16px;bottom:calc(40px + env(safe-area-inset-bottom));margin:0;text-align:center;color:#fff;font-weight:600;font-size:16px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.ent-fechar{position:absolute;top:calc(12px + env(safe-area-inset-top));right:14px;width:46px;height:46px;border-radius:50%;border:0;background:rgba(255,255,255,.92);font-size:28px;line-height:1;color:#111;cursor:pointer;z-index:3}
+.ent-res{position:relative;z-index:2;width:min(92vw,420px);border-radius:24px;padding:28px 22px 22px;text-align:center;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.ent-res.ok{background:#13795b}
+.ent-res.erro{background:#b42318}
+.ent-res.aviso{background:#c27803}
+.ent-icone{width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;margin:0 auto 10px;font-size:44px;font-weight:700}
+.ent-titulo{font-size:30px;font-weight:800;letter-spacing:.01em}
+.ent-nome{font-size:21px;font-weight:700;margin-top:8px;overflow-wrap:anywhere}
+.ent-evt{font-size:14px;opacity:.9;margin-top:2px}
+.ent-det{font-size:15px;margin:12px 0 18px;opacity:.95}
+.ent-botoes{display:flex;flex-direction:column;gap:8px}
+.ent-botoes .btn{padding:14px;font-size:16px;background:rgba(255,255,255,.18);color:#fff}
+.ent-botoes .btn.primary{background:#fff;color:var(--tinta)}
+@media print{.ent-overlay{display:none!important}}

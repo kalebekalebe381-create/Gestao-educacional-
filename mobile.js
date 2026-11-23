@@ -11,6 +11,7 @@ const ICONES = {
 };
 const PRINCIPAIS = [['painel', 'Painel'], ['financeiro', 'Financeiro'], ['cobrancas', 'Cobranças'], ['comercial', 'Comercial']];
 const MAIS = [
+  ['entrada', 'Entrada do evento', 'Ler o QR code dos ingressos na porta'],
   ['alunos', 'Alunos', 'Cadastro e situação de cada aluno'],
   ['cursos', 'Cursos e turmas', 'Planos, valores e turmas'],
   ['retornos', 'Retornos', 'Agenda de quem chamar de volta'],
@@ -73,7 +74,7 @@ function marcarAtivo(rota) {
   const principal = PRINCIPAIS.some(([k]) => k === r);
   document.querySelectorAll('.bottom-nav [data-tab]').forEach((a) => a.classList.toggle('ativo', principal ? a.dataset.tab === r : a.dataset.tab === 'mais'));
   const fab = document.querySelector('.fab');
-  if (fab) fab.classList.toggle('hidden', ['config', 'relatorios', 'cobrancas'].includes(r));
+  if (fab) fab.classList.toggle('hidden', ['config', 'relatorios', 'cobrancas', 'entrada'].includes(r));
 }
 
 montar();

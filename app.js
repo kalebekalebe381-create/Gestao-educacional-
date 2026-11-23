@@ -823,6 +823,7 @@ function verMatricula(id) {
       Pago: <b>${brl(r.pago)}</b> · Falta: <b>${brl(Math.max(0, r.saldo))}</b> · ${tagSituacao(r.situacao)}
       ${Math.abs(difer) > 0.009 ? `<br><span style="color:var(--vermelho)">Atenção: a soma das parcelas (${brl(somaParc)}) está diferente do valor final.</span>` : ''}
     </div>
+    ${window.GI ? window.GI.bloco(m) : ''}
     <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px"><b style="color:var(--verde)">Parcelas</b><button class="btn small" data-a="addp">+ Parcela</button></div>
     <div class="tabela-wrap"><table><thead><tr><th>#</th><th>Vencimento</th><th class="num">Valor</th><th>Situação</th><th></th></tr></thead><tbody>
     ${(m.parcelas || []).map((p) => `<tr>
@@ -856,6 +857,7 @@ function verMatricula(id) {
     el.onclick = async (e) => {
       const b = e.target.closest('[data-a]'); if (!b) return;
       const acao = b.dataset.a; const pid = b.dataset.p;
+      if (acao.startsWith('ing-') && window.GI) { lerCampos(); return window.GI.acao(acao, m, { grava, redesenha }); }
       const p = pid && m.parcelas.find((x) => x.id === pid);
       if (acao === 'paga') {
         lerCampos();
@@ -1060,6 +1062,7 @@ function vConfig() {
         <label class="inteira">Chave Pix (vai na mensagem de cobrança)<input name="pix" value="${h(cfg.pix || '')}" placeholder="CNPJ, e-mail, telefone ou chave aleatória"></label>
         <label class="inteira">Mensagem de cobrança<textarea name="msgCobranca" style="min-height:110px">${h(cfg.msgCobranca || '')}</textarea><span class="ajuda">Use {nome}, {parcela}, {curso}, {valor}, {vencimento} e {pix}. O painel troca pelos dados do aluno.</span></label>
         <label class="inteira">Mensagem de retorno<textarea name="msgRetorno">${h(cfg.msgRetorno || '')}</textarea><span class="ajuda">Use {nome} e {assunto}.</span></label>
+        <label class="inteira">Mensagem do ingresso<textarea name="msgIngresso" style="min-height:130px" placeholder="${h(window.GI ? window.GI.MSG_PADRAO : '')}">${h(cfg.msgIngresso || '')}</textarea><span class="ajuda">Vazio usa a mensagem padrão. Use {nome}, {evento}, {data}, {link} e {codigo}.</span></label>
         <div class="inteira form-acoes" style="margin-top:0"><button class="btn primary">Salvar</button></div>
       </form>
     </div>
@@ -1128,7 +1131,7 @@ window.G = {
   async salvarConfig(e) {
     e.preventDefault();
     const f = dadosForm(e.target);
-    await salvar({ ...config(), tipo: 'config', id: 'config', nomeInstituto: f.nomeInstituto, pix: f.pix.trim(), msgCobranca: f.msgCobranca, msgRetorno: f.msgRetorno });
+    await salvar({ ...config(), tipo: 'config', id: 'config', nomeInstituto: f.nomeInstituto, pix: f.pix.trim(), msgCobranca: f.msgCobranca, msgRetorno: f.msgRetorno, msgIngresso: (f.msgIngresso || '').trim() });
     aplicarMarca(); render(); toast('Configurações salvas');
   },
   async carregarLogo(inp) {
@@ -1182,10 +1185,23 @@ window.G = {
   },
 };
 
-// ---------- funções para os módulos extras (relatórios, celular) ----------
+// lê de novo um registro direto do banco (para dois aparelhos na porta não liberarem o mesmo ingresso)
+async function recarregar(tipo, id) {
+  if (!USA_BANCO) return porId(tipo, id) || null;
+  const { data, error } = await sb.from('ge_registros').select('id,tipo,dados').eq('id', id).maybeSingle();
+  if (error) throw error;
+  db[tipo] = db[tipo].filter((x) => x.id !== id);
+  if (!data) return null;
+  const reg = { ...data.dados, id: data.id, tipo: data.tipo };
+  db[tipo].push(reg);
+  return reg;
+}
+
+// ---------- funções para os módulos extras (relatórios, celular, ingressos) ----------
 window.GE = {
   db, estado, rotas: ROTAS, config, render, toast, abrirModal, fecharModal, salvar,
   h, brl, num, r2, dataBR, hojeISO, diasAte, linkWhats, foneBR,
+  recarregar, recarregarTudo: carregarTudo, turmasDoCurso, verMatricula,
   opcoesCursos, categoriaCurso, cursosPorCategoria, resumoMatricula, statusParcela, nomeCurso, nomeTurma, nomeAluno, porId, cursosOrdenados, matriculasAtivas,
 };
 
