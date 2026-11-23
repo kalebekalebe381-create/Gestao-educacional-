@@ -644,11 +644,7 @@ function editarAluno(id, aoSalvar) {
         ${id ? '<button type="button" class="btn perigo esq" id="delAluno">Apagar aluno</button>' : ''}
         <button type="button" class="btn ghost" onclick="G.fechar()">Cancelar</button><button class="btn primary">Salvar</button>
       </div></form>`, (el) => {
-    if (id) $('#delAluno', el).onclick = async () => {
-      if (db.matricula.some((m) => m.alunoId === id)) return toast('Este aluno tem matrículas. Cancele ou apague as matrículas primeiro.');
-      if (!confirm('Apagar este aluno?')) return;
-      await apagar(porId('aluno', id)); fecharModal(); render();
-    };
+    if (id) $('#delAluno', el).onclick = () => apagarAluno(id);
     $('#fAluno', el).onsubmit = async (e) => {
       e.preventDefault();
       const f = dadosForm(e.target);
@@ -657,6 +653,22 @@ function editarAluno(id, aoSalvar) {
       if (aoSalvar) aoSalvar(a);
     };
   });
+}
+// apaga o aluno e, se ele tiver, as matrículas dele (com parcelas e ingresso)
+async function apagarAluno(id) {
+  const a = porId('aluno', id); if (!a) return;
+  const mats = db.matricula.filter((m) => m.alunoId === id);
+  const pagos = mats.reduce((s, m) => s + resumoMatricula(m).pago, 0);
+  const aviso = mats.length
+    ? `Apagar ${a.nome} e ${mats.length === 1 ? 'a matrícula dele' : `as ${mats.length} matrículas dele`}?${pagos > 0 ? `\n\nOs pagamentos lançados (${brl(pagos)}) também saem do Financeiro e dos relatórios.` : ''}\n\nIsso não tem volta.`
+    : `Apagar ${a.nome}? Isso não tem volta.`;
+  if (!confirm(aviso)) return;
+  try {
+    for (const m of mats) await apagar(m);
+    for (const l of db.lead.filter((x) => x.alunoId === id)) { delete l.alunoId; await salvar(l); }
+    await apagar(a);
+  } catch { return; }
+  fecharModal(); render(); toast('Aluno apagado');
 }
 function verAluno(id) {
   const a = porId('aluno', id); if (!a) return;
@@ -671,6 +683,7 @@ function verAluno(id) {
       <button class="btn small" onclick="G.editarAluno('${id}')">Editar dados</button>
       <button class="btn small" onclick="G.editarRetorno(null,{nome:${h(JSON.stringify(a.nome))},whatsapp:${h(JSON.stringify(a.whatsapp || ''))},alunoId:'${id}'})">Agendar retorno</button>
       <button class="btn primary small" onclick="G.novaMatricula({alunoId:'${id}'})">+ Matrícula</button>
+      <button class="btn perigo small" onclick="G.apagarAluno('${id}')">Apagar aluno</button>
     </div>
     <b style="color:var(--verde)">Matrículas</b>
     <div class="lista" style="margin-top:8px">
@@ -1122,7 +1135,7 @@ function redimensionarImagem(file, max = 320) {
 window.G = {
   fechar: fecharModal,
   filtroPainel(v) { estado.filtroCursoPainel = v; render(); },
-  novaMatricula, verMatricula, pagarParcela, editarCurso, editarTurma, verTurma, editarLead, editarAluno, verAluno, editarRetorno,
+  novaMatricula, verMatricula, pagarParcela, editarCurso, editarTurma, verTurma, editarLead, editarAluno, verAluno, apagarAluno, editarRetorno,
   buscaAlunos(v) { estado.alunosBusca = v; render(); const i = $('#buscaAlunos'); i.focus(); i.setSelectionRange(v.length, v.length); },
   filtroFin(k, v) { estado.fin[k] = v; render(); if (k === 'busca') { const i = $('#buscaFin'); i.focus(); i.setSelectionRange(v.length, v.length); } },
   abaCobr(k) { estado.cobr = k; render(); },
